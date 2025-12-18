@@ -465,3 +465,27 @@ func (c *Client) GetExerciseTemplate(id string) (*ExerciseTemplate, error) {
 
 	return &result.ExerciseTemplate, nil
 }
+
+// GetAllWorkouts fetches all workouts using pagination
+func (c *Client) GetAllWorkouts() ([]Workout, error) {
+	var allWorkouts []Workout
+	page := 1
+	pageSize := 10 // API max is 10
+
+	for {
+		resp, err := c.GetWorkouts(page, pageSize)
+		if err != nil {
+			return nil, err
+		}
+
+		allWorkouts = append(allWorkouts, resp.Workouts...)
+
+		// Check if there are more pages
+		if page >= resp.PageCount || len(resp.Workouts) == 0 {
+			break
+		}
+		page++
+	}
+
+	return allWorkouts, nil
+}

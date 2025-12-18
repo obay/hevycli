@@ -11,6 +11,7 @@ import (
 	"github.com/obay/hevycli/cmd/exercise"
 	"github.com/obay/hevycli/cmd/folder"
 	"github.com/obay/hevycli/cmd/routine"
+	"github.com/obay/hevycli/cmd/stats"
 	"github.com/obay/hevycli/cmd/workout"
 	internalConfig "github.com/obay/hevycli/internal/config"
 	"github.com/obay/hevycli/internal/output"
@@ -88,6 +89,7 @@ func init() {
 	rootCmd.AddCommand(routine.Cmd)
 	rootCmd.AddCommand(exercise.Cmd)
 	rootCmd.AddCommand(folder.Cmd)
+	rootCmd.AddCommand(stats.Cmd)
 	rootCmd.AddCommand(completion.Cmd)
 	rootCmd.AddCommand(versionCmd)
 }
