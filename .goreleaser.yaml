@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+project_name: hevycli
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: hevycli
+    binary: hevycli
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - "386"
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/obay/hevycli/cmd.Version={{.Version}}
+      - -X github.com/obay/hevycli/cmd.Commit={{.ShortCommit}}
+      - -X github.com/obay/hevycli/cmd.Date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE*
+      - README*
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - Merge pull request
+      - Merge branch
+
+brews:
+  - name: hevycli
+    repository:
+      owner: obay
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: .
+    homepage: "https://github.com/obay/hevycli"
+    description: "CLI for the Hevy fitness tracking platform"
+    license: "MIT"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    install: |
+      bin.install "hevycli"
+    test: |
+      system "#{bin}/hevycli", "--version"
+
+scoops:
+  - name: hevycli
+    repository:
+      owner: obay
+      name: scoop-bucket
+      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
+    homepage: "https://github.com/obay/hevycli"
+    description: "CLI for the Hevy fitness tracking platform"
+    license: MIT
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Scoop manifest update for {{ .ProjectName }} version {{ .Tag }}"
+
+release:
+  github:
+    owner: obay
+    name: hevycli
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"

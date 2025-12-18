@@ -17,6 +17,11 @@ import (
 )
 
 var (
+	// Build-time variables (set by goreleaser)
+	Version = "dev"
+	Commit  = "none"
+	Date    = "unknown"
+
 	// Global flags
 	cfgFile   string
 	outputFmt string
@@ -152,6 +157,10 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("hevycli v0.1.0")
+		fmt.Printf("hevycli %s\n", Version)
+		if verbose {
+			fmt.Printf("  commit: %s\n", Commit)
+			fmt.Printf("  built:  %s\n", Date)
+		}
 	},
 }
