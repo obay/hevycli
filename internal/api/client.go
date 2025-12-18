@@ -256,7 +256,7 @@ func (c *Client) GetRoutineFolders(page, pageSize int) (*RoutineFoldersResponse,
 // handleResponse checks for API errors based on HTTP status code
 func (c *Client) handleResponse(resp *resty.Response) error {
 	switch resp.StatusCode() {
-	case http.StatusOK, http.StatusCreated:
+	case http.StatusOK, http.StatusCreated, http.StatusNoContent:
 		return nil
 	case http.StatusUnauthorized:
 		return ErrInvalidAPIKey
@@ -275,4 +275,193 @@ func (c *Client) handleResponse(resp *resty.Response) error {
 		}
 		return nil
 	}
+}
+
+// CreateWorkout creates a new workout
+func (c *Client) CreateWorkout(req *CreateWorkoutRequest) (*Workout, error) {
+	var result WorkoutResponse
+	resp, err := c.httpClient.R().
+		SetBody(req).
+		SetResult(&result).
+		Post("/workouts")
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to create workout: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.Workout, nil
+}
+
+// UpdateWorkout updates an existing workout
+func (c *Client) UpdateWorkout(id string, req *UpdateWorkoutRequest) (*Workout, error) {
+	var result WorkoutResponse
+	resp, err := c.httpClient.R().
+		SetBody(req).
+		SetResult(&result).
+		Put("/workouts/" + id)
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to update workout: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.Workout, nil
+}
+
+// DeleteWorkout deletes a workout by ID
+func (c *Client) DeleteWorkout(id string) error {
+	resp, err := c.httpClient.R().
+		Delete("/workouts/" + id)
+
+	if err != nil {
+		return &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to delete workout: %v", err),
+		}
+	}
+
+	return c.handleResponse(resp)
+}
+
+// CreateRoutine creates a new routine
+func (c *Client) CreateRoutine(req *CreateRoutineRequest) (*Routine, error) {
+	var result RoutineResponse
+	resp, err := c.httpClient.R().
+		SetBody(req).
+		SetResult(&result).
+		Post("/routines")
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to create routine: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.Routine, nil
+}
+
+// UpdateRoutine updates an existing routine
+func (c *Client) UpdateRoutine(id string, req *UpdateRoutineRequest) (*Routine, error) {
+	var result RoutineResponse
+	resp, err := c.httpClient.R().
+		SetBody(req).
+		SetResult(&result).
+		Put("/routines/" + id)
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to update routine: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.Routine, nil
+}
+
+// CreateRoutineFolder creates a new routine folder
+func (c *Client) CreateRoutineFolder(req *CreateRoutineFolderRequest) (*RoutineFolder, error) {
+	var result RoutineFolderResponse
+	resp, err := c.httpClient.R().
+		SetBody(req).
+		SetResult(&result).
+		Post("/routine_folders")
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to create routine folder: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.RoutineFolder, nil
+}
+
+// GetRoutineFolder fetches a single routine folder by ID
+func (c *Client) GetRoutineFolder(id string) (*RoutineFolder, error) {
+	var result RoutineFolderResponse
+	resp, err := c.httpClient.R().
+		SetResult(&result).
+		Get("/routine_folders/" + id)
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to fetch routine folder: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.RoutineFolder, nil
+}
+
+// CreateCustomExercise creates a new custom exercise template
+func (c *Client) CreateCustomExercise(req *CreateCustomExerciseRequest) (*ExerciseTemplate, error) {
+	var result ExerciseTemplateResponse
+	resp, err := c.httpClient.R().
+		SetBody(req).
+		SetResult(&result).
+		Post("/exercise_templates")
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to create custom exercise: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.ExerciseTemplate, nil
+}
+
+// GetExerciseTemplate fetches a single exercise template by ID
+func (c *Client) GetExerciseTemplate(id string) (*ExerciseTemplate, error) {
+	var result ExerciseTemplateResponse
+	resp, err := c.httpClient.R().
+		SetResult(&result).
+		Get("/exercise_templates/" + id)
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to fetch exercise template: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.ExerciseTemplate, nil
 }

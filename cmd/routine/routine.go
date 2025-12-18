@@ -9,11 +9,15 @@ var Cmd = &cobra.Command{
 	Long: `View and manage your Hevy workout routines (templates).
 
 Examples:
-  hevycli routine list           # List all routines
-  hevycli routine get <id>       # Get routine details`,
+  hevycli routine list                  # List all routines
+  hevycli routine get <id>              # Get routine details
+  hevycli routine create --file r.json  # Create from JSON
+  hevycli routine update <id> --file r.json  # Update routine`,
 }
 
 func init() {
 	Cmd.AddCommand(listCmd)
 	Cmd.AddCommand(getCmd)
+	Cmd.AddCommand(createCmd)
+	Cmd.AddCommand(updateCmd)
 }

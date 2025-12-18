@@ -10,7 +10,8 @@ var Cmd = &cobra.Command{
 
 Examples:
   hevycli folder list          # List all folders
-  hevycli folder get <id>      # Get folder details`,
+  hevycli folder get <id>      # Get folder details
+  hevycli folder create "Name" # Create new folder`,
 }
 
 func init() {
