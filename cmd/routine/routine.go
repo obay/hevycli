@@ -12,7 +12,8 @@ Examples:
   hevycli routine list                  # List all routines
   hevycli routine get <id>              # Get routine details
   hevycli routine create --file r.json  # Create from JSON
-  hevycli routine update <id> --file r.json  # Update routine`,
+  hevycli routine update <id> --file r.json  # Update routine
+  hevycli routine builder               # Interactive routine builder`,
 }
 
 func init() {
