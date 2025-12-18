@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/obay/hevycli/cmd/completion"
 	"github.com/obay/hevycli/cmd/config"
 	"github.com/obay/hevycli/cmd/exercise"
 	"github.com/obay/hevycli/cmd/folder"
@@ -82,6 +83,7 @@ func init() {
 	rootCmd.AddCommand(routine.Cmd)
 	rootCmd.AddCommand(exercise.Cmd)
 	rootCmd.AddCommand(folder.Cmd)
+	rootCmd.AddCommand(completion.Cmd)
 	rootCmd.AddCommand(versionCmd)
 }
 
