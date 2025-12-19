@@ -22,7 +22,7 @@ A powerful command-line interface for the [Hevy](https://www.hevyapp.com/) fitne
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew install obay/tap/hevycli
+brew install --cask obay/tap/hevycli
 ```
 
 ### Scoop (Windows)
