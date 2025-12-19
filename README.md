@@ -1,5 +1,11 @@
 # hevycli
 
+[![Go Version](https://img.shields.io/github/go-mod/go-version/obay/hevycli)](https://go.dev/)
+[![License](https://img.shields.io/github/license/obay/hevycli)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/obay/hevycli)](https://github.com/obay/hevycli/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/obay/hevycli)](https://goreportcard.com/report/github.com/obay/hevycli)
+[![CI](https://github.com/obay/hevycli/actions/workflows/ci.yml/badge.svg)](https://github.com/obay/hevycli/actions/workflows/ci.yml)
+
 A powerful command-line interface for the [Hevy](https://www.hevyapp.com/) fitness tracking platform.
 
 ## Features
