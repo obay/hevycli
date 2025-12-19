@@ -489,3 +489,81 @@ func (c *Client) GetAllWorkouts() ([]Workout, error) {
 
 	return allWorkouts, nil
 }
+
+// GetWorkoutEvents fetches workout events (updates/deletes) since a given time
+func (c *Client) GetWorkoutEvents(since time.Time, page, pageSize int) (*WorkoutEventsResponse, error) {
+	var result WorkoutEventsResponse
+	resp, err := c.httpClient.R().
+		SetQueryParams(map[string]string{
+			"page":     fmt.Sprintf("%d", page),
+			"pageSize": fmt.Sprintf("%d", pageSize),
+			"since":    since.Format(time.RFC3339),
+		}).
+		SetResult(&result).
+		Get("/workouts/events")
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to fetch workout events: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// DeleteRoutine deletes a routine by ID
+func (c *Client) DeleteRoutine(id string) error {
+	resp, err := c.httpClient.R().
+		Delete("/routines/" + id)
+
+	if err != nil {
+		return &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to delete routine: %v", err),
+		}
+	}
+
+	return c.handleResponse(resp)
+}
+
+// UpdateRoutineFolder updates an existing routine folder
+func (c *Client) UpdateRoutineFolder(id string, req *UpdateRoutineFolderRequest) (*RoutineFolder, error) {
+	var result RoutineFolderResponse
+	resp, err := c.httpClient.R().
+		SetBody(req).
+		SetResult(&result).
+		Put("/routine_folders/" + id)
+
+	if err != nil {
+		return nil, &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to update routine folder: %v", err),
+		}
+	}
+
+	if err := c.handleResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return &result.RoutineFolder, nil
+}
+
+// DeleteRoutineFolder deletes a routine folder by ID
+func (c *Client) DeleteRoutineFolder(id string) error {
+	resp, err := c.httpClient.R().
+		Delete("/routine_folders/" + id)
+
+	if err != nil {
+		return &APIError{
+			ErrorCode:    "NETWORK_ERROR",
+			ErrorMessage: fmt.Sprintf("failed to delete routine folder: %v", err),
+		}
+	}
+
+	return c.handleResponse(resp)
+}

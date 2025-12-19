@@ -11,8 +11,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/obay/hevycli/internal/api"
+	"github.com/obay/hevycli/internal/cmdutil"
 	"github.com/obay/hevycli/internal/config"
 	"github.com/obay/hevycli/internal/output"
+	"github.com/obay/hevycli/internal/tui/prompt"
 )
 
 var (
@@ -35,7 +37,7 @@ Examples:
   hevycli stats progress "Bench Press"
   hevycli stats progress "Squat" --metric 1rm
   hevycli stats progress "Deadlift" --metric volume --period year`,
-	Args: cobra.ExactArgs(1),
+	Args: cmdutil.RequireArgs(1, "<exercise-name>"),
 	RunE: runProgress,
 }
 
@@ -71,7 +73,57 @@ type ProgressAnalysis struct {
 }
 
 func runProgress(cmd *cobra.Command, args []string) error {
-	exerciseName := args[0]
+	var exerciseName string
+	if len(args) > 0 {
+		exerciseName = args[0]
+	} else {
+		// Interactive mode - let user search and select an exercise
+		cfg, err := config.Load("")
+		if err != nil {
+			return fmt.Errorf("failed to load config: %w", err)
+		}
+
+		apiKey := cfg.GetAPIKey()
+		if apiKey == "" {
+			return fmt.Errorf("API key not configured. Run 'hevycli config init' to set up")
+		}
+
+		client := api.NewClient(apiKey)
+
+		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
+			Title:       "Select an Exercise",
+			Placeholder: "Search exercises...",
+			Help:        "Type to filter by exercise name",
+			LoadFunc: func() ([]prompt.SelectOption, error) {
+				var allExercises []api.ExerciseTemplate
+				page := 1
+				for {
+					resp, err := client.GetExerciseTemplates(page, 10)
+					if err != nil {
+						return nil, err
+					}
+					allExercises = append(allExercises, resp.ExerciseTemplates...)
+					if page >= resp.PageCount || len(allExercises) > 500 {
+						break
+					}
+					page++
+				}
+				options := make([]prompt.SelectOption, len(allExercises))
+				for i, ex := range allExercises {
+					options[i] = prompt.SelectOption{
+						ID:          ex.Title, // Use title as ID since we need the name
+						Title:       ex.Title,
+						Description: ex.PrimaryMuscleGroup + " • " + ex.Equipment,
+					}
+				}
+				return options, nil
+			},
+		})
+		if err != nil {
+			return err
+		}
+		exerciseName = selected.ID // ID is the title in this case
+	}
 
 	cfg, err := config.Load("")
 	if err != nil {

@@ -263,6 +263,16 @@ type CreateRoutineFolderData struct {
 	Title string `json:"title"`
 }
 
+// UpdateRoutineFolderRequest represents the request body for PUT /routine_folders/{id}
+type UpdateRoutineFolderRequest struct {
+	RoutineFolder UpdateRoutineFolderData `json:"routine_folder"`
+}
+
+// UpdateRoutineFolderData represents the folder data for update
+type UpdateRoutineFolderData struct {
+	Title string `json:"title"`
+}
+
 // WorkoutResponse represents the response from POST/PUT /workouts
 type WorkoutResponse struct {
 	Workout Workout `json:"workout"`

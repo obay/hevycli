@@ -8,8 +8,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/obay/hevycli/internal/api"
+	"github.com/obay/hevycli/internal/cmdutil"
 	"github.com/obay/hevycli/internal/config"
 	"github.com/obay/hevycli/internal/output"
+	"github.com/obay/hevycli/internal/tui/prompt"
 )
 
 var getCmd = &cobra.Command{
@@ -20,13 +22,11 @@ var getCmd = &cobra.Command{
 Examples:
   hevycli workout get abc123-def456    # Get workout by ID
   hevycli workout get abc123 -o json   # Output as JSON`,
-	Args: cobra.ExactArgs(1),
+	Args: cmdutil.RequireArgs(1, "<workout-id>"),
 	RunE: runGet,
 }
 
 func runGet(cmd *cobra.Command, args []string) error {
-	workoutID := args[0]
-
 	cfg, err := config.Load("")
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
@@ -38,6 +38,37 @@ func runGet(cmd *cobra.Command, args []string) error {
 	}
 
 	client := api.NewClient(apiKey)
+
+	var workoutID string
+	if len(args) > 0 {
+		workoutID = args[0]
+	} else {
+		// Interactive mode - let user select from recent workouts
+		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
+			Title:       "Select a Workout",
+			Placeholder: "Search workouts...",
+			Help:        "Type to filter by workout title",
+			LoadFunc: func() ([]prompt.SelectOption, error) {
+				workouts, err := client.GetWorkouts(1, 20)
+				if err != nil {
+					return nil, err
+				}
+				options := make([]prompt.SelectOption, len(workouts.Workouts))
+				for i, w := range workouts.Workouts {
+					options[i] = prompt.SelectOption{
+						ID:          w.ID,
+						Title:       w.Title,
+						Description: w.StartTime.Format("Jan 2, 2006") + " • " + fmt.Sprintf("%d exercises", len(w.Exercises)),
+					}
+				}
+				return options, nil
+			},
+		})
+		if err != nil {
+			return err
+		}
+		workoutID = selected.ID
+	}
 
 	workout, err := client.GetWorkout(workoutID)
 	if err != nil {

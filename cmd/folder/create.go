@@ -7,8 +7,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/obay/hevycli/internal/api"
+	"github.com/obay/hevycli/internal/cmdutil"
 	"github.com/obay/hevycli/internal/config"
 	"github.com/obay/hevycli/internal/output"
+	"github.com/obay/hevycli/internal/tui/prompt"
 )
 
 var createCmd = &cobra.Command{
@@ -19,7 +21,7 @@ var createCmd = &cobra.Command{
 Examples:
   hevycli folder create "Push Pull"        # Create a folder
   hevycli folder create "My Routines" -o json   # Output as JSON`,
-	Args: cobra.ExactArgs(1),
+	Args: cmdutil.RequireArgs(1, "<title>"),
 	RunE: runFolderCreate,
 }
 
@@ -28,7 +30,24 @@ func init() {
 }
 
 func runFolderCreate(cmd *cobra.Command, args []string) error {
-	title := args[0]
+	var title string
+	if len(args) > 0 {
+		title = args[0]
+	} else {
+		// Interactive mode - prompt for folder title
+		var err error
+		title, err = prompt.TextInput(
+			"Create Folder",
+			"Enter folder name...",
+			"enter to confirm",
+		)
+		if err != nil {
+			return err
+		}
+		if title == "" {
+			return fmt.Errorf("folder title cannot be empty")
+		}
+	}
 
 	cfg, err := config.Load("")
 	if err != nil {

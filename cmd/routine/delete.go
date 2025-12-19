@@ -1,4 +1,4 @@
-package workout
+package routine
 
 import (
 	"bufio"
@@ -19,22 +19,23 @@ var (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete <workout-id>",
-	Short: "Delete a workout",
-	Long: `Delete a workout by ID.
+	Use:   "delete <routine-id>",
+	Short: "Delete a routine",
+	Long: `Delete a routine by ID.
 
 By default, you will be prompted to confirm the deletion.
 Use --force to skip the confirmation prompt.
 
 Examples:
-  hevycli workout delete <id>           # Delete with confirmation
-  hevycli workout delete <id> --force   # Delete without confirmation`,
-	Args: cmdutil.RequireArgs(1, "<workout-id>"),
+  hevycli routine delete <id>           # Delete with confirmation
+  hevycli routine delete <id> --force   # Delete without confirmation`,
+	Args: cmdutil.RequireArgs(1, "<routine-id>"),
 	RunE: runDelete,
 }
 
 func init() {
 	deleteCmd.Flags().BoolVarP(&deleteForce, "force", "f", false, "Skip confirmation prompt")
+	Cmd.AddCommand(deleteCmd)
 }
 
 func runDelete(cmd *cobra.Command, args []string) error {
@@ -50,26 +51,26 @@ func runDelete(cmd *cobra.Command, args []string) error {
 
 	client := api.NewClient(apiKey)
 
-	var workoutID string
+	var routineID string
 	if len(args) > 0 {
-		workoutID = args[0]
+		routineID = args[0]
 	} else {
-		// Interactive mode - let user select from recent workouts
+		// Interactive mode - let user select from routines
 		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
-			Title:       "Select Workout to Delete",
-			Placeholder: "Search workouts...",
-			Help:        "Type to filter by workout title",
+			Title:       "Select Routine to Delete",
+			Placeholder: "Search routines...",
+			Help:        "Type to filter by routine title",
 			LoadFunc: func() ([]prompt.SelectOption, error) {
-				workouts, err := client.GetWorkouts(1, 20)
+				routines, err := client.GetRoutines(1, 20)
 				if err != nil {
 					return nil, err
 				}
-				options := make([]prompt.SelectOption, len(workouts.Workouts))
-				for i, w := range workouts.Workouts {
+				options := make([]prompt.SelectOption, len(routines.Routines))
+				for i, r := range routines.Routines {
 					options[i] = prompt.SelectOption{
-						ID:          w.ID,
-						Title:       w.Title,
-						Description: w.StartTime.Format("Jan 2, 2006") + " • " + fmt.Sprintf("%d exercises", len(w.Exercises)),
+						ID:          r.ID,
+						Title:       r.Title,
+						Description: fmt.Sprintf("%d exercises", len(r.Exercises)),
 					}
 				}
 				return options, nil
@@ -78,18 +79,18 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		workoutID = selected.ID
+		routineID = selected.ID
 	}
 
-	// Get workout details first to show what we're deleting
-	workout, err := client.GetWorkout(workoutID)
+	// Get routine details first to show what we're deleting
+	routine, err := client.GetRoutine(routineID)
 	if err != nil {
-		return fmt.Errorf("failed to fetch workout: %w", err)
+		return fmt.Errorf("failed to fetch routine: %w", err)
 	}
 
 	// Confirm deletion unless --force is used
 	if !deleteForce {
-		fmt.Printf("Are you sure you want to delete workout '%s' (%s)?\n", workout.Title, workout.ID)
+		fmt.Printf("Are you sure you want to delete routine '%s' (%s)?\n", routine.Title, routine.ID)
 		fmt.Printf("This action cannot be undone.\n")
 		fmt.Print("Type 'yes' to confirm: ")
 
@@ -106,11 +107,11 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Delete the workout
-	if err := client.DeleteWorkout(workoutID); err != nil {
-		return fmt.Errorf("failed to delete workout: %w", err)
+	// Delete the routine
+	if err := client.DeleteRoutine(routineID); err != nil {
+		return fmt.Errorf("failed to delete routine: %w", err)
 	}
 
-	fmt.Printf("Workout '%s' deleted successfully.\n", workout.Title)
+	fmt.Printf("Routine '%s' deleted successfully.\n", routine.Title)
 	return nil
 }

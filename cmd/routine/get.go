@@ -8,8 +8,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/obay/hevycli/internal/api"
+	"github.com/obay/hevycli/internal/cmdutil"
 	"github.com/obay/hevycli/internal/config"
 	"github.com/obay/hevycli/internal/output"
+	"github.com/obay/hevycli/internal/tui/prompt"
 )
 
 var getCmd = &cobra.Command{
@@ -20,13 +22,11 @@ var getCmd = &cobra.Command{
 Examples:
   hevycli routine get abc123-def456    # Get routine by ID
   hevycli routine get abc123 -o json   # Output as JSON`,
-	Args: cobra.ExactArgs(1),
+	Args: cmdutil.RequireArgs(1, "<routine-id>"),
 	RunE: runGet,
 }
 
 func runGet(cmd *cobra.Command, args []string) error {
-	routineID := args[0]
-
 	cfg, err := config.Load("")
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
@@ -38,6 +38,37 @@ func runGet(cmd *cobra.Command, args []string) error {
 	}
 
 	client := api.NewClient(apiKey)
+
+	var routineID string
+	if len(args) > 0 {
+		routineID = args[0]
+	} else {
+		// Interactive mode - let user select from routines
+		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
+			Title:       "Select a Routine",
+			Placeholder: "Search routines...",
+			Help:        "Type to filter by routine title",
+			LoadFunc: func() ([]prompt.SelectOption, error) {
+				routines, err := client.GetRoutines(1, 20)
+				if err != nil {
+					return nil, err
+				}
+				options := make([]prompt.SelectOption, len(routines.Routines))
+				for i, r := range routines.Routines {
+					options[i] = prompt.SelectOption{
+						ID:          r.ID,
+						Title:       r.Title,
+						Description: fmt.Sprintf("%d exercises", len(r.Exercises)),
+					}
+				}
+				return options, nil
+			},
+		})
+		if err != nil {
+			return err
+		}
+		routineID = selected.ID
+	}
 
 	routine, err := client.GetRoutine(routineID)
 	if err != nil {

@@ -8,8 +8,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/obay/hevycli/internal/api"
+	"github.com/obay/hevycli/internal/cmdutil"
 	"github.com/obay/hevycli/internal/config"
 	"github.com/obay/hevycli/internal/output"
+	"github.com/obay/hevycli/internal/tui/prompt"
 )
 
 var (
@@ -28,7 +30,7 @@ Examples:
   hevycli exercise search "press" --muscle chest     # Filter by muscle
   hevycli exercise search "" --equipment barbell     # Filter by equipment only
   hevycli exercise search "curl" -o json             # Output as JSON`,
-	Args: cobra.ExactArgs(1),
+	Args: cmdutil.RequireArgs(1, "<query>"),
 	RunE: runSearch,
 }
 
@@ -39,7 +41,22 @@ func init() {
 }
 
 func runSearch(cmd *cobra.Command, args []string) error {
-	query := strings.ToLower(args[0])
+	var query string
+	if len(args) > 0 {
+		query = strings.ToLower(args[0])
+	} else {
+		// Interactive mode - prompt for search query
+		var err error
+		query, err = prompt.TextInput(
+			"Search Exercises",
+			"Enter search term...",
+			"enter to search",
+		)
+		if err != nil {
+			return err
+		}
+		query = strings.ToLower(query)
+	}
 
 	cfg, err := config.Load("")
 	if err != nil {

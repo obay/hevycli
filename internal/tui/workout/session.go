@@ -534,36 +534,67 @@ func (m SessionModel) IsFinished() bool {
 	return m.finished
 }
 
+// GetStartTime returns the workout start time
+func (m SessionModel) GetStartTime() time.Time {
+	return m.startTime
+}
+
+// GetTitle returns the workout title
+func (m SessionModel) GetTitle() string {
+	return m.title
+}
+
+// SessionResult contains the results of a completed workout session
+type SessionResult struct {
+	Title     string
+	StartTime time.Time
+	EndTime   time.Time
+	Exercises []ExerciseData
+	Finished  bool
+}
+
 // Run starts the interactive workout session
-func RunSession(title string, exercises []ExerciseData) ([]ExerciseData, bool, error) {
+func RunSession(title string, exercises []ExerciseData) (*SessionResult, error) {
 	model := NewSessionModel(title, exercises)
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	finalModel, err := p.Run()
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	if m, ok := finalModel.(SessionModel); ok {
-		return m.GetExercises(), m.IsFinished(), nil
+		return &SessionResult{
+			Title:     m.GetTitle(),
+			StartTime: m.GetStartTime(),
+			EndTime:   time.Now(),
+			Exercises: m.GetExercises(),
+			Finished:  m.IsFinished(),
+		}, nil
 	}
 
-	return nil, false, nil
+	return nil, nil
 }
 
 // RunSessionFromRoutine starts a session from a routine
-func RunSessionFromRoutine(routine *api.Routine) ([]ExerciseData, bool, error) {
+func RunSessionFromRoutine(routine *api.Routine) (*SessionResult, error) {
 	model := NewSessionFromRoutine(routine)
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	finalModel, err := p.Run()
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	if m, ok := finalModel.(SessionModel); ok {
-		return m.GetExercises(), m.IsFinished(), nil
+		return &SessionResult{
+			Title:     m.GetTitle(),
+			StartTime: m.GetStartTime(),
+			EndTime:   time.Now(),
+			Exercises: m.GetExercises(),
+			Finished:  m.IsFinished(),
+		}, nil
 	}
 
-	return nil, false, nil
+	return nil, nil
 }

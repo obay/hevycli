@@ -13,6 +13,7 @@ Examples:
   hevycli routine get <id>              # Get routine details
   hevycli routine create --file r.json  # Create from JSON
   hevycli routine update <id> --file r.json  # Update routine
+  hevycli routine delete <id>           # Delete routine
   hevycli routine builder               # Interactive routine builder`,
 }
 
@@ -21,4 +22,5 @@ func init() {
 	Cmd.AddCommand(getCmd)
 	Cmd.AddCommand(createCmd)
 	Cmd.AddCommand(updateCmd)
+	// deleteCmd is added in delete.go's init()
 }

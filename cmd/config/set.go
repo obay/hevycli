@@ -7,7 +7,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/obay/hevycli/internal/api"
+	"github.com/obay/hevycli/internal/cmdutil"
 	"github.com/obay/hevycli/internal/config"
+	"github.com/obay/hevycli/internal/tui/prompt"
 )
 
 var validateKey bool
@@ -30,7 +32,7 @@ Examples:
   hevycli config set units imperial
   hevycli config set default-output json
   hevycli config set color false`,
-	Args: cobra.ExactArgs(2),
+	Args: cmdutil.RequireArgs(2, "<key> <value>"),
 	RunE: runSet,
 }
 
@@ -40,8 +42,81 @@ func init() {
 }
 
 func runSet(cmd *cobra.Command, args []string) error {
-	key := strings.ToLower(args[0])
-	value := args[1]
+	var key, value string
+
+	if len(args) >= 2 {
+		key = strings.ToLower(args[0])
+		value = args[1]
+	} else {
+		// Interactive mode - let user select key and enter value
+		keyOptions := []prompt.SelectOption{
+			{ID: "api-key", Title: "API Key", Description: "Your Hevy API key"},
+			{ID: "default-output", Title: "Default Output", Description: "Output format (json, table, plain)"},
+			{ID: "units", Title: "Units", Description: "Measurement units (metric, imperial)"},
+			{ID: "color", Title: "Color", Description: "Enable/disable colored output"},
+			{ID: "date-format", Title: "Date Format", Description: "Date format (Go format string)"},
+			{ID: "time-format", Title: "Time Format", Description: "Time format (Go format string)"},
+		}
+
+		selected, err := prompt.Select("Select configuration key", keyOptions, "Choose a setting to configure...")
+		if err != nil {
+			return err
+		}
+		key = selected.ID
+
+		// Get value based on key type
+		switch key {
+		case "default-output":
+			outputOptions := []prompt.SelectOption{
+				{ID: "table", Title: "Table", Description: "Formatted table output (default)"},
+				{ID: "json", Title: "JSON", Description: "Raw JSON output"},
+				{ID: "plain", Title: "Plain", Description: "Plain text output"},
+			}
+			selectedOutput, err := prompt.Select("Select output format", outputOptions, "Choose a format...")
+			if err != nil {
+				return err
+			}
+			value = selectedOutput.ID
+
+		case "units":
+			unitsOptions := []prompt.SelectOption{
+				{ID: "metric", Title: "Metric", Description: "Kilograms and kilometers"},
+				{ID: "imperial", Title: "Imperial", Description: "Pounds and miles"},
+			}
+			selectedUnits, err := prompt.Select("Select measurement units", unitsOptions, "Choose units...")
+			if err != nil {
+				return err
+			}
+			value = selectedUnits.ID
+
+		case "color":
+			colorOptions := []prompt.SelectOption{
+				{ID: "true", Title: "Enabled", Description: "Show colored output"},
+				{ID: "false", Title: "Disabled", Description: "Plain monochrome output"},
+			}
+			selectedColor, err := prompt.Select("Enable colored output?", colorOptions, "Choose...")
+			if err != nil {
+				return err
+			}
+			value = selectedColor.ID
+
+		default:
+			// Text input for other keys
+			placeholder := "Enter value..."
+			if key == "api-key" {
+				placeholder = "Enter your Hevy API key..."
+			} else if key == "date-format" {
+				placeholder = "e.g., 2006-01-02"
+			} else if key == "time-format" {
+				placeholder = "e.g., 15:04"
+			}
+
+			value, err = prompt.TextInput("Enter "+key, placeholder, "enter to confirm")
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	// Load existing config or create default
 	cfg, err := config.Load("")

@@ -13,19 +13,29 @@ import (
 	"github.com/obay/hevycli/internal/tui/prompt"
 )
 
-var getCmd = &cobra.Command{
-	Use:   "get <folder-id>",
-	Short: "Get folder details",
-	Long: `Get detailed information about a specific routine folder.
+var (
+	updateTitle string
+)
+
+var updateCmd = &cobra.Command{
+	Use:   "update <folder-id>",
+	Short: "Update a routine folder",
+	Long: `Update a routine folder's title.
 
 Examples:
-  hevycli folder get abc123-def456    # Get folder by ID
-  hevycli folder get abc123 -o json   # Output as JSON`,
+  hevycli folder update <id> --title "New Name"
+  hevycli folder update <id> --title "Push/Pull" -o json`,
 	Args: cmdutil.RequireArgs(1, "<folder-id>"),
-	RunE: runGet,
+	RunE: runFolderUpdate,
 }
 
-func runGet(cmd *cobra.Command, args []string) error {
+func init() {
+	updateCmd.Flags().StringVar(&updateTitle, "title", "", "New folder title")
+	updateCmd.MarkFlagRequired("title")
+	Cmd.AddCommand(updateCmd)
+}
+
+func runFolderUpdate(cmd *cobra.Command, args []string) error {
 	cfg, err := config.Load("")
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
@@ -44,7 +54,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 	} else {
 		// Interactive mode - let user select from folders
 		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
-			Title:       "Select a Folder",
+			Title:       "Select Folder to Update",
 			Placeholder: "Search folders...",
 			Help:        "Type to filter by folder title",
 			LoadFunc: func() ([]prompt.SelectOption, error) {
@@ -69,33 +79,6 @@ func runGet(cmd *cobra.Command, args []string) error {
 		folderID = selected.ID
 	}
 
-	// Search for the folder in the list
-	page := 1
-	var folder *api.RoutineFolder
-
-	for {
-		resp, err := client.GetRoutineFolders(page, 10)
-		if err != nil {
-			return fmt.Errorf("failed to fetch folders: %w", err)
-		}
-
-		for _, f := range resp.RoutineFolders {
-			if f.ID == folderID {
-				folder = &f
-				break
-			}
-		}
-
-		if folder != nil || page >= resp.PageCount || resp.PageCount == 0 {
-			break
-		}
-		page++
-	}
-
-	if folder == nil {
-		return fmt.Errorf("folder not found: %s", folderID)
-	}
-
 	// Determine output format
 	outputFmt := cfg.Display.OutputFormat
 	if cmd.Flags().Changed("output") {
@@ -108,6 +91,19 @@ func runGet(cmd *cobra.Command, args []string) error {
 		Writer:  os.Stdout,
 	})
 
+	// Update the folder
+	req := &api.UpdateRoutineFolderRequest{
+		RoutineFolder: api.UpdateRoutineFolderData{
+			Title: updateTitle,
+		},
+	}
+
+	folder, err := client.UpdateRoutineFolder(folderID, req)
+	if err != nil {
+		return fmt.Errorf("failed to update folder: %w", err)
+	}
+
+	// Format output
 	if outputFmt == "json" {
 		out, err := formatter.Format(folder)
 		if err != nil {
@@ -115,16 +111,10 @@ func runGet(cmd *cobra.Command, args []string) error {
 		}
 		fmt.Println(out)
 	} else {
-		printFolderDetails(folder, cfg)
+		fmt.Println("Folder updated successfully!")
+		fmt.Printf("ID: %s\n", folder.ID)
+		fmt.Printf("Title: %s\n", folder.Title)
 	}
 
 	return nil
-}
-
-func printFolderDetails(f *api.RoutineFolder, cfg *config.Config) {
-	fmt.Printf("Folder: %s\n", f.Title)
-	fmt.Printf("ID: %s\n", f.ID)
-	fmt.Printf("Index: %d\n", f.Index)
-	fmt.Printf("Created: %s\n", f.CreatedAt.Format(cfg.Display.DateFormat))
-	fmt.Printf("Updated: %s\n", f.UpdatedAt.Format(cfg.Display.DateFormat))
 }

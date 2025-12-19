@@ -16,7 +16,8 @@ Examples:
   hevycli workout create --file w.json  # Create from JSON
   hevycli workout update <id> --file w.json  # Update workout
   hevycli workout delete <id>       # Delete workout
-  hevycli workout start             # Start interactive session`,
+  hevycli workout start             # Start interactive session
+  hevycli workout events --since 2024-01-01  # Get change events`,
 }
 
 func init() {
