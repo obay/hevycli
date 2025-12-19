@@ -7,8 +7,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/obay/hevycli/internal/api"
+	"github.com/obay/hevycli/internal/cmdutil"
 	"github.com/obay/hevycli/internal/config"
 	"github.com/obay/hevycli/internal/output"
+	tuiExercise "github.com/obay/hevycli/internal/tui/exercise"
 )
 
 var (
@@ -54,6 +56,30 @@ func runList(cmd *cobra.Command, args []string) error {
 		outputFmt, _ = cmd.Flags().GetString("output")
 	}
 
+	// Use interactive TUI if:
+	// - Running in interactive terminal
+	// - Not explicitly requesting JSON output
+	// - Not using pagination flags (--page, --limit, --all)
+	useInteractive := cmdutil.IsInteractive() &&
+		outputFmt != "json" &&
+		!cmd.Flags().Changed("page") &&
+		!cmd.Flags().Changed("limit") &&
+		!cmd.Flags().Changed("all")
+
+	if useInteractive {
+		result, err := tuiExercise.RunTable(client)
+		if err != nil {
+			return fmt.Errorf("failed to run interactive table: %w", err)
+		}
+
+		// If user selected an exercise, show its details
+		if result.Selected != nil {
+			printExerciseDetails(result.Selected, cfg)
+		}
+		return nil
+	}
+
+	// Non-interactive mode: use traditional table output
 	formatter := output.NewFormatter(output.Options{
 		Format:  output.FormatType(outputFmt),
 		NoColor: !cfg.Display.Color,
