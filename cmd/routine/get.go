@@ -105,7 +105,7 @@ func printRoutineDetails(r *api.Routine, cfg *config.Config, formatter output.Fo
 	fmt.Printf("ID: %s\n", r.ID)
 
 	if r.FolderID != nil {
-		fmt.Printf("Folder: %s\n", *r.FolderID)
+		fmt.Printf("Folder: %d\n", *r.FolderID)
 	}
 
 	fmt.Printf("Created: %s\n", r.CreatedAt.Format(cfg.Display.DateFormat))

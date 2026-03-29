@@ -68,7 +68,7 @@ const (
 type Routine struct {
 	ID        string     `json:"id"`
 	Title     string     `json:"title"`
-	FolderID  *string    `json:"folder_id,omitempty"`
+	FolderID  *int       `json:"folder_id,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	Exercises []Exercise `json:"exercises"`
@@ -76,7 +76,7 @@ type Routine struct {
 
 // RoutineFolder represents a folder for organizing routines
 type RoutineFolder struct {
-	ID        string    `json:"id"`
+	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Index     int       `json:"index"`
 	CreatedAt time.Time `json:"created_at"`

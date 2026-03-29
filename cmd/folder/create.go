@@ -94,7 +94,7 @@ func runFolderCreate(cmd *cobra.Command, args []string) error {
 		fmt.Println(out)
 	} else {
 		fmt.Println("Folder created successfully!")
-		fmt.Printf("ID: %s\n", folder.ID)
+		fmt.Printf("ID: %d\n", folder.ID)
 		fmt.Printf("Title: %s\n", folder.Title)
 	}
 
