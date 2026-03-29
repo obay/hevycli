@@ -3,6 +3,7 @@ package folder
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -48,9 +49,13 @@ func runFolderUpdate(cmd *cobra.Command, args []string) error {
 
 	client := api.NewClient(apiKey)
 
-	var folderID string
+	var folderID int
 	if len(args) > 0 {
-		folderID = args[0]
+		var err error
+		folderID, err = strconv.Atoi(args[0])
+		if err != nil {
+			return fmt.Errorf("invalid folder ID: %s", args[0])
+		}
 	} else {
 		// Interactive mode - let user select from folders
 		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
@@ -65,7 +70,7 @@ func runFolderUpdate(cmd *cobra.Command, args []string) error {
 				options := make([]prompt.SelectOption, len(folders.RoutineFolders))
 				for i, f := range folders.RoutineFolders {
 					options[i] = prompt.SelectOption{
-						ID:          f.ID,
+						ID:          fmt.Sprintf("%d", f.ID),
 						Title:       f.Title,
 						Description: fmt.Sprintf("Index: %d", f.Index),
 					}
@@ -76,7 +81,7 @@ func runFolderUpdate(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		folderID = selected.ID
+		folderID, _ = strconv.Atoi(selected.ID)
 	}
 
 	// Determine output format
@@ -112,7 +117,7 @@ func runFolderUpdate(cmd *cobra.Command, args []string) error {
 		fmt.Println(out)
 	} else {
 		fmt.Println("Folder updated successfully!")
-		fmt.Printf("ID: %s\n", folder.ID)
+		fmt.Printf("ID: %d\n", folder.ID)
 		fmt.Printf("Title: %s\n", folder.Title)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -54,9 +55,13 @@ func runFolderDelete(cmd *cobra.Command, args []string) error {
 
 	client := api.NewClient(apiKey)
 
-	var folderID string
+	var folderID int
 	if len(args) > 0 {
-		folderID = args[0]
+		var err error
+		folderID, err = strconv.Atoi(args[0])
+		if err != nil {
+			return fmt.Errorf("invalid folder ID: %s", args[0])
+		}
 	} else {
 		// Interactive mode - let user select from folders
 		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
@@ -71,7 +76,7 @@ func runFolderDelete(cmd *cobra.Command, args []string) error {
 				options := make([]prompt.SelectOption, len(folders.RoutineFolders))
 				for i, f := range folders.RoutineFolders {
 					options[i] = prompt.SelectOption{
-						ID:          f.ID,
+						ID:          fmt.Sprintf("%d", f.ID),
 						Title:       f.Title,
 						Description: fmt.Sprintf("Index: %d", f.Index),
 					}
@@ -82,7 +87,7 @@ func runFolderDelete(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		folderID = selected.ID
+		folderID, _ = strconv.Atoi(selected.ID)
 	}
 
 	// Get folder details first to show what we're deleting
@@ -93,7 +98,7 @@ func runFolderDelete(cmd *cobra.Command, args []string) error {
 
 	// Confirm deletion unless --force is used
 	if !deleteForce {
-		fmt.Printf("Are you sure you want to delete folder '%s' (%s)?\n", folder.Title, folder.ID)
+		fmt.Printf("Are you sure you want to delete folder '%s' (%d)?\n", folder.Title, folder.ID)
 		fmt.Printf("This action cannot be undone. Routines inside will become unorganized.\n")
 		fmt.Print("Type 'yes' to confirm: ")
 
