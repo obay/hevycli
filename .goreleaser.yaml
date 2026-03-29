@@ -62,39 +62,9 @@ changelog:
       - Merge pull request
       - Merge branch
 
-homebrew_casks:
-  - name: hevycli
-    repository:
-      owner: obay
-      name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    directory: Casks
-    homepage: "https://github.com/obay/hevycli"
-    description: "CLI for the Hevy fitness tracking platform"
-    binaries:
-      - hevycli
-    commit_author:
-      name: goreleaserbot
-      email: bot@goreleaser.com
-    commit_msg_template: "Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
-
-scoops:
-  - name: hevycli
-    repository:
-      owner: obay
-      name: scoop-bucket
-      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
-    homepage: "https://github.com/obay/hevycli"
-    description: "CLI for the Hevy fitness tracking platform"
-    license: MIT
-    commit_author:
-      name: goreleaserbot
-      email: bot@goreleaser.com
-    commit_msg_template: "Scoop manifest update for {{ .ProjectName }} version {{ .Tag }}"
-
 release:
   github:
-    owner: obay
+    owner: asabirov
     name: hevycli
   draft: false
   prerelease: auto
