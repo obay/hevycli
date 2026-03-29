@@ -280,7 +280,7 @@ type WorkoutResponse struct {
 
 // RoutineResponse represents the response from POST/PUT /routines
 type RoutineResponse struct {
-	Routine Routine `json:"routine"`
+	Routines []Routine `json:"routine"`
 }
 
 // RoutineFolderResponse represents the response from POST /routine_folders

@@ -355,7 +355,14 @@ func (c *Client) CreateRoutine(req *CreateRoutineRequest) (*Routine, error) {
 		return nil, err
 	}
 
-	return &result.Routine, nil
+	if len(result.Routines) == 0 {
+		return nil, &APIError{
+			ErrorCode:    "EMPTY_RESPONSE",
+			ErrorMessage: "API returned no routines in response",
+		}
+	}
+
+	return &result.Routines[0], nil
 }
 
 // UpdateRoutine updates an existing routine
@@ -377,7 +384,14 @@ func (c *Client) UpdateRoutine(id string, req *UpdateRoutineRequest) (*Routine, 
 		return nil, err
 	}
 
-	return &result.Routine, nil
+	if len(result.Routines) == 0 {
+		return nil, &APIError{
+			ErrorCode:    "EMPTY_RESPONSE",
+			ErrorMessage: "API returned no routines in response",
+		}
+	}
+
+	return &result.Routines[0], nil
 }
 
 // CreateRoutineFolder creates a new routine folder
