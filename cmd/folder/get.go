@@ -3,6 +3,7 @@ package folder
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -19,8 +20,8 @@ var getCmd = &cobra.Command{
 	Long: `Get detailed information about a specific routine folder.
 
 Examples:
-  hevycli folder get abc123-def456    # Get folder by ID
-  hevycli folder get abc123 -o json   # Output as JSON`,
+  hevycli folder get 123              # Get folder by ID
+  hevycli folder get 123 -o json      # Output as JSON`,
 	Args: cmdutil.RequireArgs(1, "<folder-id>"),
 	RunE: runGet,
 }
@@ -38,9 +39,13 @@ func runGet(cmd *cobra.Command, args []string) error {
 
 	client := api.NewClient(apiKey)
 
-	var folderID string
+	var folderID int
 	if len(args) > 0 {
-		folderID = args[0]
+		var err error
+		folderID, err = strconv.Atoi(args[0])
+		if err != nil {
+			return fmt.Errorf("invalid folder ID: %s", args[0])
+		}
 	} else {
 		// Interactive mode - let user select from folders
 		selected, err := prompt.SearchSelect(prompt.SearchSelectConfig{
@@ -55,7 +60,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 				options := make([]prompt.SelectOption, len(folders.RoutineFolders))
 				for i, f := range folders.RoutineFolders {
 					options[i] = prompt.SelectOption{
-						ID:          f.ID,
+						ID:          fmt.Sprintf("%d", f.ID),
 						Title:       f.Title,
 						Description: fmt.Sprintf("Index: %d", f.Index),
 					}
@@ -66,7 +71,10 @@ func runGet(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		folderID = selected.ID
+		folderID, err = strconv.Atoi(selected.ID)
+		if err != nil {
+			return fmt.Errorf("invalid folder ID selected: %s", selected.ID)
+		}
 	}
 
 	// Search for the folder in the list
@@ -93,7 +101,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 	}
 
 	if folder == nil {
-		return fmt.Errorf("folder not found: %s", folderID)
+		return fmt.Errorf("folder not found: %d", folderID)
 	}
 
 	// Determine output format
@@ -123,7 +131,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 
 func printFolderDetails(f *api.RoutineFolder, cfg *config.Config) {
 	fmt.Printf("Folder: %s\n", f.Title)
-	fmt.Printf("ID: %s\n", f.ID)
+	fmt.Printf("ID: %d\n", f.ID)
 	fmt.Printf("Index: %d\n", f.Index)
 	fmt.Printf("Created: %s\n", f.CreatedAt.Format(cfg.Display.DateFormat))
 	fmt.Printf("Updated: %s\n", f.UpdatedAt.Format(cfg.Display.DateFormat))

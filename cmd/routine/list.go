@@ -3,6 +3,7 @@ package routine
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -94,9 +95,13 @@ func runList(cmd *cobra.Command, args []string) error {
 
 	// Filter by folder if specified
 	if listFolder != "" {
+		folderID, err := strconv.Atoi(listFolder)
+		if err != nil {
+			return fmt.Errorf("invalid folder ID: %s", listFolder)
+		}
 		var filtered []api.Routine
 		for _, r := range allRoutines {
-			if r.FolderID != nil && *r.FolderID == listFolder {
+			if r.FolderID != nil && *r.FolderID == folderID {
 				filtered = append(filtered, r)
 			}
 		}
@@ -120,7 +125,7 @@ func runList(cmd *cobra.Command, args []string) error {
 		for _, r := range allRoutines {
 			folder := "-"
 			if r.FolderID != nil {
-				folder = *r.FolderID
+				folder = fmt.Sprintf("%d", *r.FolderID)
 			}
 
 			updated := r.UpdatedAt.Format(cfg.Display.DateFormat)

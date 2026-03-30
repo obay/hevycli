@@ -355,7 +355,14 @@ func (c *Client) CreateRoutine(req *CreateRoutineRequest) (*Routine, error) {
 		return nil, err
 	}
 
-	return &result.Routine, nil
+	if len(result.Routines) == 0 {
+		return nil, &APIError{
+			ErrorCode:    "EMPTY_RESPONSE",
+			ErrorMessage: "API returned no routines in response",
+		}
+	}
+
+	return &result.Routines[0], nil
 }
 
 // UpdateRoutine updates an existing routine
@@ -377,7 +384,14 @@ func (c *Client) UpdateRoutine(id string, req *UpdateRoutineRequest) (*Routine, 
 		return nil, err
 	}
 
-	return &result.Routine, nil
+	if len(result.Routines) == 0 {
+		return nil, &APIError{
+			ErrorCode:    "EMPTY_RESPONSE",
+			ErrorMessage: "API returned no routines in response",
+		}
+	}
+
+	return &result.Routines[0], nil
 }
 
 // CreateRoutineFolder creates a new routine folder
@@ -403,11 +417,11 @@ func (c *Client) CreateRoutineFolder(req *CreateRoutineFolderRequest) (*RoutineF
 }
 
 // GetRoutineFolder fetches a single routine folder by ID
-func (c *Client) GetRoutineFolder(id string) (*RoutineFolder, error) {
+func (c *Client) GetRoutineFolder(id int) (*RoutineFolder, error) {
 	var result RoutineFolderResponse
 	resp, err := c.httpClient.R().
 		SetResult(&result).
-		Get("/routine_folders/" + id)
+		Get(fmt.Sprintf("/routine_folders/%d", id))
 
 	if err != nil {
 		return nil, &APIError{
@@ -532,12 +546,12 @@ func (c *Client) DeleteRoutine(id string) error {
 }
 
 // UpdateRoutineFolder updates an existing routine folder
-func (c *Client) UpdateRoutineFolder(id string, req *UpdateRoutineFolderRequest) (*RoutineFolder, error) {
+func (c *Client) UpdateRoutineFolder(id int, req *UpdateRoutineFolderRequest) (*RoutineFolder, error) {
 	var result RoutineFolderResponse
 	resp, err := c.httpClient.R().
 		SetBody(req).
 		SetResult(&result).
-		Put("/routine_folders/" + id)
+		Put(fmt.Sprintf("/routine_folders/%d", id))
 
 	if err != nil {
 		return nil, &APIError{
@@ -554,9 +568,9 @@ func (c *Client) UpdateRoutineFolder(id string, req *UpdateRoutineFolderRequest)
 }
 
 // DeleteRoutineFolder deletes a routine folder by ID
-func (c *Client) DeleteRoutineFolder(id string) error {
+func (c *Client) DeleteRoutineFolder(id int) error {
 	resp, err := c.httpClient.R().
-		Delete("/routine_folders/" + id)
+		Delete(fmt.Sprintf("/routine_folders/%d", id))
 
 	if err != nil {
 		return &APIError{

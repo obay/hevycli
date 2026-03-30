@@ -110,7 +110,7 @@ func runList(cmd *cobra.Command, args []string) error {
 		for _, f := range allFolders {
 			updated := f.UpdatedAt.Format(cfg.Display.DateFormat)
 			table.AddRow(
-				f.ID,
+				fmt.Sprintf("%d", f.ID),
 				f.Title,
 				fmt.Sprintf("%d", f.Index),
 				updated,
