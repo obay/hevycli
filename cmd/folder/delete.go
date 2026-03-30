@@ -87,7 +87,10 @@ func runFolderDelete(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		folderID, _ = strconv.Atoi(selected.ID)
+		folderID, err = strconv.Atoi(selected.ID)
+		if err != nil {
+			return fmt.Errorf("invalid folder ID selected: %s", selected.ID)
+		}
 	}
 
 	// Get folder details first to show what we're deleting

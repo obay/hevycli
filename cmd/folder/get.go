@@ -20,8 +20,8 @@ var getCmd = &cobra.Command{
 	Long: `Get detailed information about a specific routine folder.
 
 Examples:
-  hevycli folder get abc123-def456    # Get folder by ID
-  hevycli folder get abc123 -o json   # Output as JSON`,
+  hevycli folder get 123              # Get folder by ID
+  hevycli folder get 123 -o json      # Output as JSON`,
 	Args: cmdutil.RequireArgs(1, "<folder-id>"),
 	RunE: runGet,
 }
@@ -71,7 +71,10 @@ func runGet(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		folderID, _ = strconv.Atoi(selected.ID)
+		folderID, err = strconv.Atoi(selected.ID)
+		if err != nil {
+			return fmt.Errorf("invalid folder ID selected: %s", selected.ID)
+		}
 	}
 
 	// Search for the folder in the list

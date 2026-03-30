@@ -64,7 +64,7 @@ changelog:
 
 release:
   github:
-    owner: asabirov
+    owner: obay
     name: hevycli
   draft: false
   prerelease: auto
