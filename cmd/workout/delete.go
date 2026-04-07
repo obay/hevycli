@@ -101,8 +101,7 @@ func runDelete(cmd *cobra.Command, args []string) error {
 
 		response = strings.TrimSpace(strings.ToLower(response))
 		if response != "yes" {
-			fmt.Println("Deletion cancelled.")
-			return nil
+			return fmt.Errorf("deletion cancelled")
 		}
 	}
 

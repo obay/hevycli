@@ -530,21 +530,6 @@ func (c *Client) GetWorkoutEvents(since time.Time, page, pageSize int) (*Workout
 	return &result, nil
 }
 
-// DeleteRoutine deletes a routine by ID
-func (c *Client) DeleteRoutine(id string) error {
-	resp, err := c.httpClient.R().
-		Delete("/routines/" + id)
-
-	if err != nil {
-		return &APIError{
-			ErrorCode:    "NETWORK_ERROR",
-			ErrorMessage: fmt.Sprintf("failed to delete routine: %v", err),
-		}
-	}
-
-	return c.handleResponse(resp)
-}
-
 // UpdateRoutineFolder updates an existing routine folder
 func (c *Client) UpdateRoutineFolder(id int, req *UpdateRoutineFolderRequest) (*RoutineFolder, error) {
 	var result RoutineFolderResponse
