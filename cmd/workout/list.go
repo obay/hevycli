@@ -120,7 +120,7 @@ func runList(cmd *cobra.Command, args []string) error {
 
 		for _, w := range allWorkouts {
 			duration := formatDuration(w.Duration())
-			date := w.StartTime.Format(cfg.Display.DateFormat)
+			date := w.StartTime.Local().Format(cfg.Display.DateFormat)
 			table.AddRow(
 				w.ID,
 				truncateString(w.Title, 30),

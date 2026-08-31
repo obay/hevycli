@@ -58,7 +58,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 					options[i] = prompt.SelectOption{
 						ID:          w.ID,
 						Title:       w.Title,
-						Description: w.StartTime.Format("Jan 2, 2006") + " • " + fmt.Sprintf("%d exercises", len(w.Exercises)),
+						Description: w.StartTime.Local().Format("Jan 2, 2006") + " • " + fmt.Sprintf("%d exercises", len(w.Exercises)),
 					}
 				}
 				return options, nil
@@ -104,7 +104,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 func printWorkoutDetails(w *api.Workout, cfg *config.Config, formatter output.Formatter) {
 	fmt.Printf("Workout: %s\n", w.Title)
 	fmt.Printf("ID: %s\n", w.ID)
-	fmt.Printf("Date: %s\n", w.StartTime.Format(cfg.Display.DateFormat+" "+cfg.Display.TimeFormat))
+	fmt.Printf("Date: %s\n", w.StartTime.Local().Format(cfg.Display.DateFormat+" "+cfg.Display.TimeFormat))
 	fmt.Printf("Duration: %s\n", formatDuration(w.Duration()))
 
 	if w.Description != "" {
